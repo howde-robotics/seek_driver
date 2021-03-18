@@ -68,13 +68,19 @@ void SeekDriver::run()
                     displayData_.data());
     processReturnCode(returnErrorCode, "Getting Image from Camera");
 
+    //published message header
     std_msgs::Header head;
     head.seq = frameCount_;
     head.stamp = ros::Time::now();
-    sensor_msgs::ImagePtr msg = cv_bridge::CvImage(head, 
-      "bgr8", displayImageMatrix_).toImageMsg();
 
+    //publish display image
+    sensor_msgs::ImagePtr msg = cv_bridge::CvImage(head, 
+      "bgra8", displayImageMatrix_).toImageMsg();
     displayImagePub_.publish(msg);
+
+    //publish thermography image
+
+
     ++frameCount_;
   }
 }
@@ -101,7 +107,6 @@ void SeekDriver::timerCallback(const ros::TimerEvent& e)
 void SeekDriver::initRos()
 {
   //default doesn't need to be over 9.0 since that is camera frame rate
-  //limit
   private_nh_.param<double>("timerFreq_", timerFreq_, 9.0);  // Hz
 
   // set subscriber
@@ -110,7 +115,7 @@ void SeekDriver::initRos()
   // set publisher
   image_transport::ImageTransport it(nh_);
   displayImagePub_ = it.advertise("seek_camera/displayImage", 10);
-  // vehicleStatsPub_ = nh_.advertise<std_msgs::String>("/vehicle_status", 10);
+  // thermographyImagePub_ = it.advertise("seek_camera/thermographyImage", 10);
 
   // set timers
   timer_ = nh_.createTimer(ros::Rate(timerFreq_), &SeekDriver::timerCallback, this);
