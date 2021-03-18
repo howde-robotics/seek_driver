@@ -78,7 +78,9 @@ private:
    * in the Seek API. The encoding for CV_8UC4 (8 bit, 4 channel)
    * is BGRA32. While these may seem different, the ARGB888 is
    * little endian notation, thus the channels require no mixing
-   * and can be put directly in a cv matrix of type CV_8UC4
+   * and can be put directly in a cv matrix of type CV_8UC4. Alpha
+   * channels is fully saturated for native seek returns, will
+   * only be used if you implement a custom LUT
    * 
    * In this implementation, the cv matrix is pointed directly
    * to the image buffer, so the matrix itself doesn't need to
@@ -116,6 +118,7 @@ private:
   double timerFreq_;
 
   image_transport::Publisher displayImagePub_;
+  image_transport::Publisher thermographyImagePub_;
 
   // Boiler plate ROS functions
   void initRos();
