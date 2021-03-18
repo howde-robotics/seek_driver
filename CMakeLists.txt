@@ -10,6 +10,9 @@ project(seek_driver)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
+  image_transport
+  cv_bridge
+  sensor_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -104,7 +107,8 @@ find_package( OpenCV REQUIRED )
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES seek_driver
- CATKIN_DEPENDS roscpp std_msgs
+CATKIN_DEPENDS 
+  roscpp std_msgs cv_bridge image_transport sensor_msgs
 #  DEPENDS system_lib
 )
 
