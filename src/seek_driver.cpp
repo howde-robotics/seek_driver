@@ -46,6 +46,9 @@ SeekDriver::SeekDriver() : private_nh_("~"), camera_(NULL)
 	Seekware_SetSettingEx(camera_, SETTING_ENABLE_TIMESTAMP, &enable, sizeof(enable));
 	Seekware_SetSettingEx(camera_, SETTING_RESET_TIMESTAMP, &enable, sizeof(enable));
 
+  //Setting lookup table for gain controlled display image
+  Seekware_SetSetting(camera_, SETTING_ACTIVE_LUT, SW_LUT_WHITE_NEW);
+
   //using ptr version requires no updating in run loop
   displayImageMatrix_ = cv::Mat(camera_->frame_rows, 
     camera_->frame_cols, CV_8UC4, displayData_.data());
