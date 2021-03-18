@@ -16,7 +16,7 @@ SeekDriver::SeekDriver() : private_nh_("~"), camera_(NULL)
   mostRecentReturn = Seekware_Find(cameraList, numCamsToFind, &numCamsFound);
   processReturnCode(mostRecentReturn, "Finding Camera");
 
-  if (numCamsFound == 0 || !camera_) {
+  if (numCamsFound == 0) {
 		ROS_ERROR("Seek camera not found");//TODO: Replace with custom message
     return;
 	}
@@ -70,7 +70,7 @@ void SeekDriver::run()
     head.stamp = ros::Time::now();
     sensor_msgs::ImagePtr msg = cv_bridge::CvImage(head, 
       "bgr8", displayImageMatrix_).toImageMsg();
-  
+
     displayImagePub_.publish(msg);
     ++frameCount_;
   }
