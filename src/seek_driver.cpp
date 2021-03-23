@@ -16,21 +16,22 @@ SeekDriver::SeekDriver() : private_nh_("~"), camera_(NULL)
   mostRecentReturn = Seekware_Find(cameraList, numCamsToFind, &numCamsFound);
   processReturnCode(mostRecentReturn, "Finding Camera");
 
-  if (numCamsFound == 0) {
-		ROS_ERROR("Seek camera not found");//TODO: Replace with custom message
+  if (numCamsFound == 0) 
+  {
+    ROS_ERROR("Seek camera not found");//TODO: Replace with custom message
     return;
-	}
+  }
 
   //grab first (only) camera from camera list
   camera_ = cameraList[0];
 
   //Stop camera first, in case failed close last time
-	mostRecentReturn = Seekware_Stop(camera_);
-	processReturnCode(mostRecentReturn, "Stopping Camera pre-Open");
+  mostRecentReturn = Seekware_Stop(camera_);
+  processReturnCode(mostRecentReturn, "Stopping Camera pre-Open");
 
   //Alright now open it
-	mostRecentReturn = Seekware_Open(camera_);
-	processReturnCode(mostRecentReturn, "Opening Camera");
+  mostRecentReturn = Seekware_Open(camera_);
+  processReturnCode(mostRecentReturn, "Opening Camera");
 
   int totalNumPixels = camera_->frame_rows * camera_->frame_cols;
 
@@ -43,21 +44,21 @@ SeekDriver::SeekDriver() : private_nh_("~"), camera_(NULL)
   //reset and start timer TODO: I believe this sets it to zero, need to
   //adjust returns to get in line with the wall clock
   int enable = 1;
-	Seekware_SetSettingEx(camera_, SETTING_ENABLE_TIMESTAMP, &enable, sizeof(enable));
-	Seekware_SetSettingEx(camera_, SETTING_RESET_TIMESTAMP, &enable, sizeof(enable));
+  Seekware_SetSettingEx(camera_, SETTING_ENABLE_TIMESTAMP, &enable, sizeof(enable));
+  Seekware_SetSettingEx(camera_, SETTING_RESET_TIMESTAMP, &enable, sizeof(enable));
 
   //Setting lookup table for gain controlled display image
   Seekware_SetSetting(camera_, SETTING_ACTIVE_LUT, SW_LUT_WHITE_NEW);
 
   //using ptr version requires no updating in run loop
   displayImageMatrix_ = cv::Mat(camera_->frame_rows, 
-    camera_->frame_cols, CV_8UC4, displayData_.data());
+  camera_->frame_cols, CV_8UC4, displayData_.data());
 
   temperatureImageMatrix_ = cv::Mat(camera_->frame_rows,
-    camera_->frame_cols, CV_32FC1, thermographyData_.data());
+  camera_->frame_cols, CV_32FC1, thermographyData_.data());
 
   filteredImageMatrix_ = cv::Mat(camera_->frame_rows, 
-    camera_->frame_cols, CV_16UC1, filteredWithTelemetryData_.data());
+  camera_->frame_cols, CV_16UC1, filteredWithTelemetryData_.data());
 
   frameCount_ = 0;
 
@@ -110,14 +111,15 @@ void SeekDriver::run()
 
 void SeekDriver::processReturnCode(sw_retcode returnError, std::string context)
 {
-  if (returnError != SW_RETCODE_NONE) {
-      std::ostringstream errStringStream;
-      errStringStream << "Seek Failed in context: " << context
-      << " \n\tReturn Code: " <<  returnError;
+  if (returnError != SW_RETCODE_NONE) 
+  {
+    std::ostringstream errStringStream;
+    errStringStream << "Seek Failed in context: " << context
+    << " \n\tReturn Code: " <<  returnError;
 
-      //TODO: Replace with custom message
-      ROS_ERROR("%s", errStringStream.str().c_str());
-    }
+    //TODO: Replace with custom message
+    ROS_ERROR("%s", errStringStream.str().c_str());
+  }
 }
 
 // put boiler plate ros function at the bottom
@@ -149,9 +151,10 @@ void SeekDriver::initRos()
 }
 
 SeekDriver::~SeekDriver() {
-  if (camera_ != NULL) {
-		Seekware_Close(camera_);
-	}
+  if (camera_ != NULL) 
+  {
+      Seekware_Close(camera_);
+  }
 }
 
 int main(int argc, char** argv)
