@@ -53,8 +53,11 @@ SeekDriver::SeekDriver() : private_nh_("~"), camera_(NULL)
   displayImageMatrix_ = cv::Mat(camera_->frame_rows, 
     camera_->frame_cols, CV_8UC4, displayData_.data());
 
-  thermographyImageMatrix_ = cv::Mat(camera_->frame_rows, 
-    camera_->frame_cols, CV_32FC1, thermographyData_.data()); 
+  temperatureImageMatrix_ = cv::Mat(camera_->frame_rows,
+    camera_->frame_cols, CV_32FC1, thermographyData_.data());
+
+  filteredImageMatrix_ = cv::Mat(camera_->frame_rows, 
+    camera_->frame_cols, CV_16UC1, filteredWithTelemetryData_.data());
 
   frameCount_ = 0;
 
@@ -82,12 +85,9 @@ void SeekDriver::run()
     displayImagePub_.publish(displayMsg);
 
     //publish thermography image
-    seek_driver::temperatureImage tempImg;
-    tempImg.header = head;
-    tempImg.data = thermographyData_;
-    tempImg.height = camera_->frame_rows;
-    tempImg.width = camera_->frame_cols;
-    thermographyImagePub_.publish(tempImg);
+    sensor_msgs::ImagePtr tempMsg = cv_bridge::CvImage(head, 
+      "32FC1", temperatureImageMatrix_).toImageMsg();
+    temperatureImagePub_.publish(tempMsg);
 
     //extract telemetry data
     size_t camera_pixels = camera_->frame_cols * camera_->frame_rows;
@@ -98,6 +98,11 @@ void SeekDriver::run()
     telData.env_temp = *reinterpret_cast<float*>(&filteredWithTelemetryData_[camera_pixels + 3]);
     telData.internal_timestamp_micros = *reinterpret_cast<unsigned long*>(& filteredWithTelemetryData_[camera_pixels + 5]);
     telemetryPub_.publish(telData);
+
+    //publish filtered image data
+    sensor_msgs::ImagePtr filteredMsg = cv_bridge::CvImage(head, 
+      "mono16", filteredImageMatrix_).toImageMsg();
+    filteredImagePub_.publish(filteredMsg);
 
     ++frameCount_;
   }
@@ -128,16 +133,16 @@ void SeekDriver::initRos()
   private_nh_.param<double>("timerFreq_", timerFreq_, 9.0);  // Hz
 
   // set subscriber
-  // odomSub_ = nh_.subscribe("/odom", 1, &SeekDriver::odomCallback, this);
 
   // set publisher
   image_transport::ImageTransport it(nh_);
   displayImagePub_ = it.advertise("seek_camera/displayImage", 10);
   
-  thermographyImagePub_ = nh_.advertise<seek_driver::temperatureImage>
-                            ("seek_camera/temperatureImageCelcius", 10);
+  temperatureImagePub_ = it.advertise("seek_camera/temperatureImageCelcius", 10);
 
   telemetryPub_ = nh_.advertise<seek_driver::telemetryData>("seek_camera/telemetry",10);
+
+  filteredImagePub_ = it.advertise("seek_camera/filteredImage", 10);
 
   // set timers
   timer_ = nh_.createTimer(ros::Rate(timerFreq_), &SeekDriver::timerCallback, this);

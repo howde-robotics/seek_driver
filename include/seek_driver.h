@@ -18,7 +18,6 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 
-#include "seek_driver/temperatureImage.h"
 #include "seek_driver/telemetryData.h"
 // Include other header files
 #include <seekware.h>
@@ -108,7 +107,11 @@ private:
    */
   cv::Mat displayImageMatrix_;
 
-  cv::Mat thermographyImageMatrix_;
+  cv::Mat temperatureImageMatrix_;
+
+  //Partially filtered sensor array readings. NOT gain controlled
+  //NOT temperature
+  cv::Mat filteredImageMatrix_;
   /////////////////////// calculation variables ///////////////////////
 
  
@@ -138,9 +141,10 @@ private:
   double timerFreq_;
 
   image_transport::Publisher displayImagePub_;//uses cv_bridge
-  ros::Publisher thermographyImagePub_;//uses custom msg
+  image_transport::Publisher temperatureImagePub_;//uses custom msg
   ros::Publisher telemetryPub_;//uses custom msg
-
+  image_transport::Publisher filteredImagePub_;//uses cv_bridge
+  
   // Boiler plate ROS functions
   void initRos();
   void timerCallback(const ros::TimerEvent& e);
