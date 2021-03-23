@@ -19,7 +19,7 @@
 #include <cv_bridge/cv_bridge.h>
 
 #include "seek_driver/temperatureImage.h"
-
+#include "seek_driver/telemetryData.h"
 // Include other header files
 #include <seekware.h>
 #include <opencv2/opencv.hpp>
@@ -138,7 +138,8 @@ private:
   double timerFreq_;
 
   image_transport::Publisher displayImagePub_;//uses cv_bridge
-  ros::Publisher thermographyImagePub_;//uses sensor_msgs/channelFloat32
+  ros::Publisher thermographyImagePub_;//uses custom msg
+  ros::Publisher telemetryPub_;//uses custom msg
 
   // Boiler plate ROS functions
   void initRos();

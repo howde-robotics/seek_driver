@@ -89,6 +89,16 @@ void SeekDriver::run()
     tempImg.width = camera_->frame_cols;
     thermographyImagePub_.publish(tempImg);
 
+    //extract telemetry data
+    size_t camera_pixels = camera_->frame_cols * camera_->frame_rows;
+    seek_driver::telemetryData telData;
+    telData.header = head;
+    telData.field_count = *reinterpret_cast<unsigned int*>(&filteredWithTelemetryData_[camera_pixels]);
+    telData.temp_diode_mv = *reinterpret_cast<unsigned short*>(&filteredWithTelemetryData_[camera_pixels + 2]);
+    telData.env_temp = *reinterpret_cast<float*>(&filteredWithTelemetryData_[camera_pixels + 3]);
+    telData.internal_timestamp_micros = *reinterpret_cast<unsigned long*>(& filteredWithTelemetryData_[camera_pixels + 5]);
+    telemetryPub_.publish(telData);
+
     ++frameCount_;
   }
 }
@@ -126,6 +136,8 @@ void SeekDriver::initRos()
   
   thermographyImagePub_ = nh_.advertise<seek_driver::temperatureImage>
                             ("seek_camera/temperatureImageCelcius", 10);
+
+  telemetryPub_ = nh_.advertise<seek_driver::telemetryData>("seek_camera/telemetry",10);
 
   // set timers
   timer_ = nh_.createTimer(ros::Rate(timerFreq_), &SeekDriver::timerCallback, this);
