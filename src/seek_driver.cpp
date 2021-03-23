@@ -53,6 +53,9 @@ SeekDriver::SeekDriver() : private_nh_("~"), camera_(NULL)
   displayImageMatrix_ = cv::Mat(camera_->frame_rows, 
     camera_->frame_cols, CV_8UC4, displayData_.data());
 
+  thermographyImageMatrix_ = cv::Mat(camera_->frame_rows, 
+    camera_->frame_cols, CV_32FC1, thermographyData_.data()); 
+
   frameCount_ = 0;
 
 }
@@ -74,12 +77,17 @@ void SeekDriver::run()
     head.stamp = ros::Time::now();
 
     //publish display image
-    sensor_msgs::ImagePtr msg = cv_bridge::CvImage(head, 
+    sensor_msgs::ImagePtr displayMsg = cv_bridge::CvImage(head, 
       "bgra8", displayImageMatrix_).toImageMsg();
-    displayImagePub_.publish(msg);
+    displayImagePub_.publish(displayMsg);
 
     //publish thermography image
-
+    seek_driver::temperatureImage tempImg;
+    tempImg.header = head;
+    tempImg.data = thermographyData_;
+    tempImg.height = camera_->frame_rows;
+    tempImg.width = camera_->frame_cols;
+    thermographyImagePub_.publish(tempImg);
 
     ++frameCount_;
   }
@@ -115,7 +123,9 @@ void SeekDriver::initRos()
   // set publisher
   image_transport::ImageTransport it(nh_);
   displayImagePub_ = it.advertise("seek_camera/displayImage", 10);
-  // thermographyImagePub_ = it.advertise("seek_camera/thermographyImage", 10);
+  
+  thermographyImagePub_ = nh_.advertise<seek_driver::temperatureImage>
+                            ("seek_camera/temperatureImageCelcius", 10);
 
   // set timers
   timer_ = nh_.createTimer(ros::Rate(timerFreq_), &SeekDriver::timerCallback, this);

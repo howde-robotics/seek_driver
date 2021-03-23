@@ -14,9 +14,11 @@
 #include <ros/ros.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Float64.h>
-#include <std_msgs/String.h>   
+#include <std_msgs/String.h>  
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
+
+#include "seek_driver/temperatureImage.h"
 
 // Include other header files
 #include <seekware.h>
@@ -39,6 +41,24 @@
 class SeekDriver
 {
 public:
+  /**
+   * @brief Construct a new Seek Driver object. This is where the
+   * camera is found and activated. If no camera is found, 
+   * the class member will remain a NULL pointer. Various errors can
+   * occur while opening the camera, all of which should log to the
+   * ROS_ERROR stream and TODO: send custom error message to watchdog.
+   * 
+   * Once the camera hardware is located, a call to stop the camera
+   * happens first. This can help if the camrea was incorrectly close
+   * last time and needs to be rebooted.
+   * 
+   * Next the camera is opened and space is allocated for the image
+   * returns in CV::mats of varying types.
+   * 
+   * Then the seek camera settings are set, a LUT is chosen, 
+   * and 
+   * 
+   */
   SeekDriver();
 
   /**
@@ -88,6 +108,7 @@ private:
    */
   cv::Mat displayImageMatrix_;
 
+  cv::Mat thermographyImageMatrix_;
   /////////////////////// calculation variables ///////////////////////
 
  
@@ -95,8 +116,7 @@ private:
   /**
    * @brief main loop over the ros timer that does this, process what, and does whaaat
    *
-   * talk more here plsss
-   * Seriously, if this is your most important function you better be writing essays here
+   * This is pretty straightforward: 
    */
   void run();
 
@@ -117,8 +137,8 @@ private:
   ros::Timer timer_;
   double timerFreq_;
 
-  image_transport::Publisher displayImagePub_;
-  image_transport::Publisher thermographyImagePub_;
+  image_transport::Publisher displayImagePub_;//uses cv_bridge
+  ros::Publisher thermographyImagePub_;//uses sensor_msgs/channelFloat32
 
   // Boiler plate ROS functions
   void initRos();
