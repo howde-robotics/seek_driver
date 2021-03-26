@@ -8,6 +8,8 @@ This package provides two primary functions:
 
 # Dependencies
 Seek SDK [Tested with 3.8.0.0]
+
 ROS [Tested with Melodic]
+
 OpenCV [Tested with 4.5.1]
 
