@@ -13,3 +13,28 @@ ROS [Tested with Melodic]
 
 OpenCV [Tested with 4.5.1]
 
+# Use
+
+```
+mkdir -p ~/catkin_ws/src
+cd ~/catkin_ws/src
+git clone https://github.com/howde-robotics/seek_driver.git
+cd ..
+catkin_make
+source devel/setup.sh
+roscore
+```
+In a new terminal
+```
+cd ~/catkin_ws
+source devel/setup.sh
+rosclaunch seek_driver seek_driver.launch
+```
+In a new terminal
+```
+cd ~/catkin_ws
+source devel/setup.sh
+rviz
+```
+
+Navigate to the 'add' at the bottom left, select 'By Topic'. Under `seek_camera/displayImage` select image.
