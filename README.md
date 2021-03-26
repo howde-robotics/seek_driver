@@ -44,4 +44,30 @@ the rviz window should looking similar to this:
 
 ![ros_seek](https://user-images.githubusercontent.com/38704785/112682748-effb2280-8e46-11eb-964f-3178d762d4d9.png)
 
+# ROS Information
+## Topics Published
 
+Imagery is published using `cv_bridge` and `image_transport`
+
+`/seek_camera/displayImage` Is the display Image
+
+`/seek_camera/filteredImage` Is the filtered image
+
+`/seek_camera/temperatureImageCelcius` Is the thermography image
+
+Telemetry information is published using a custom msg defined in msgs, over the topic `/seek_camera/telemetry`
+
+## Services Provided
+This node also provides a ROS service to restart the camera is if was disconnect or experiencing errors. This srv is defined in srvs and available under `seek_driver/restartCamera`
+
+An example use. Launch the ROS node with the seek camerea **NOT** plugged in.
+```
+roslaunch seek_driver seek_driver.launch
+```
+
+This will show a ROS error and no information will be streamed. Plug in the camera and call the restart service
+
+```
+rosservice call /seek_camera/restart_seek
+```
+The camera should now be operational
