@@ -1,6 +1,6 @@
 # seek_driver
 Seek ROS Driver. This is a rudimentary ROS driver to run a Seek thermal camera leveraging the Seek SDK.
-Tested with the Seek Linux SDK 3.8.0.0 using a S304SP Mosaic Core Starter Kit and ROS melodic
+Tested with the Seek Linux SDK 3.8.0.0 using a S304SP Mosaic Core Starter Kit and ROS Melodic
 
 This package provides two primary functions:
 - It publishes the display Image, filtered Image, thermography image and telemetry data at a set interval
