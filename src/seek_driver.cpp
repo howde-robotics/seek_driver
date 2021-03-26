@@ -8,72 +8,22 @@ SeekDriver::SeekDriver() : private_nh_("~"), camera_(NULL)
 {
   initRos();
 
-  sw_retcode mostRecentReturn;//hold return codes to process
-
-  int numCamsToFind = 1;
-  sw* cameraList[numCamsToFind];
-  int numCamsFound = 0;
-  mostRecentReturn = Seekware_Find(cameraList, numCamsToFind, &numCamsFound);
-  processReturnCode(mostRecentReturn, "Finding Camera");
-
-  if (numCamsFound == 0) 
-  {
-    ROS_ERROR("Seek camera not found");//TODO: Replace with custom message
-    return;
-  }
-
-  //grab first (only) camera from camera list
-  camera_ = cameraList[0];
-
-  //Stop camera first, in case failed close last time
-  mostRecentReturn = Seekware_Stop(camera_);
-  processReturnCode(mostRecentReturn, "Stopping Camera pre-Open");
-
-  //Alright now open it
-  mostRecentReturn = Seekware_Open(camera_);
-  processReturnCode(mostRecentReturn, "Opening Camera");
-
-  int totalNumPixels = camera_->frame_rows * camera_->frame_cols;
-
-  //initialize image buffers
-  thermographyData_ = std::vector<float>(totalNumPixels);
-  filteredData_ = std::vector<unsigned short>(totalNumPixels);
-  filteredWithTelemetryData_ = std::vector<unsigned short>(totalNumPixels + camera_->frame_cols);
-  displayData_ =  std::vector<unsigned int>(totalNumPixels);
-
-  //reset and start timer TODO: I believe this sets it to zero, need to
-  //adjust returns to get in line with the wall clock
-  int enable = 1;
-  Seekware_SetSettingEx(camera_, SETTING_ENABLE_TIMESTAMP, &enable, sizeof(enable));
-  Seekware_SetSettingEx(camera_, SETTING_RESET_TIMESTAMP, &enable, sizeof(enable));
-
-  //Setting lookup table for gain controlled display image
-  Seekware_SetSetting(camera_, SETTING_ACTIVE_LUT, SW_LUT_WHITE_NEW);
-
-  //using ptr version requires no updating in run loop
-  displayImageMatrix_ = cv::Mat(camera_->frame_rows, 
-  camera_->frame_cols, CV_8UC4, displayData_.data());
-
-  temperatureImageMatrix_ = cv::Mat(camera_->frame_rows,
-  camera_->frame_cols, CV_32FC1, thermographyData_.data());
-
-  filteredImageMatrix_ = cv::Mat(camera_->frame_rows, 
-  camera_->frame_cols, CV_16UC1, filteredWithTelemetryData_.data());
-
-  frameCount_ = 0;
+  initCamera();
 
 }
 
 void SeekDriver::run()
 {
-  //if we have a camera (remember, its a pointer)
+
+  //if we have a camera
   if (camera_){
+
     //Grab image, process return code
     sw_retcode returnErrorCode = Seekware_GetImageEx(camera_, 
                     filteredWithTelemetryData_.data(), 
                     thermographyData_.data(), 
                     displayData_.data());
-    processReturnCode(returnErrorCode, "Getting Image from Camera");
+    checkForError(returnErrorCode, "Getting Image from Camera");
 
     //published message header
     std_msgs::Header head;
@@ -109,7 +59,118 @@ void SeekDriver::run()
   }
 }
 
-void SeekDriver::processReturnCode(sw_retcode returnError, std::string context)
+bool SeekDriver::initCamera() 
+{
+  sw_retcode mostRecentReturn;//hold return codes to process
+  bool isErr;
+
+  int numCamsToFind = 1;
+  sw* cameraList[numCamsToFind];
+  int numCamsFound = 0;
+  mostRecentReturn = Seekware_Find(cameraList, numCamsToFind, &numCamsFound);
+  isErr = checkForError(mostRecentReturn, "Finding Camera");
+
+  if (isErr) {
+    return false;
+  }
+
+  if (numCamsFound == 0) 
+  {
+    ROS_ERROR("Seek camera not found");//TODO: Replace with custom message
+    return false;
+  }
+
+  //temporary pointer to camera in case initialization fails partway through
+  //Class variable set at end if initialization is successful
+  //This keeps camera_ NULL if initialization fails
+  sw* tempCamera;
+
+  //grab first (only) camera from camera list
+  tempCamera = cameraList[0];
+
+  //Stop camera first, in case failed close last time
+  mostRecentReturn = Seekware_Stop(tempCamera);
+  isErr = checkForError(mostRecentReturn, "Stopping Camera pre-Open");
+  if (isErr) {
+    return false;
+  }
+
+  //Alright now open it
+  mostRecentReturn = Seekware_Open(tempCamera);
+  isErr = checkForError(mostRecentReturn, "Opening Camera");
+  if (isErr) {
+    return false;
+  }
+
+  int totalNumPixels = tempCamera->frame_rows * tempCamera->frame_cols;
+
+  //initialize image buffers
+  thermographyData_ = std::vector<float>(totalNumPixels);
+  filteredData_ = std::vector<unsigned short>(totalNumPixels);
+  filteredWithTelemetryData_ = std::vector<unsigned short>(totalNumPixels + tempCamera->frame_cols);
+  displayData_ =  std::vector<unsigned int>(totalNumPixels);
+
+  //reset and start timer TODO: I believe this sets it to zero, need to
+  //adjust returns to get in line with the wall clock
+  int enable = 1;
+  mostRecentReturn = Seekware_SetSettingEx(tempCamera, SETTING_ENABLE_TIMESTAMP, &enable, sizeof(enable));
+  isErr = checkForError(mostRecentReturn, "Enabling timestamp");
+  if (isErr) {
+    Seekware_Close(tempCamera);
+    return false;
+  }
+  mostRecentReturn = Seekware_SetSettingEx(tempCamera, SETTING_RESET_TIMESTAMP, &enable, sizeof(enable));
+  isErr = checkForError(mostRecentReturn, "Resetting timestamp");
+  if (isErr) {
+    Seekware_Close(tempCamera);
+    return false;
+  }
+
+  //Setting lookup table for gain controlled display image
+  mostRecentReturn = Seekware_SetSetting(tempCamera, SETTING_ACTIVE_LUT, SW_LUT_WHITE_NEW);
+  isErr = checkForError(mostRecentReturn, "Setting LUT");
+  if (isErr) {
+    Seekware_Close(tempCamera);
+    return false;
+  }
+
+  //WOOHOO camera initialized successfuly
+
+  //using ptr version requires no updating in run loop
+  displayImageMatrix_ = cv::Mat(tempCamera->frame_rows, 
+  tempCamera->frame_cols, CV_8UC4, displayData_.data());
+
+  temperatureImageMatrix_ = cv::Mat(tempCamera->frame_rows,
+  tempCamera->frame_cols, CV_32FC1, thermographyData_.data());
+
+  filteredImageMatrix_ = cv::Mat(tempCamera->frame_rows, 
+  tempCamera->frame_cols, CV_16UC1, filteredWithTelemetryData_.data());
+
+  frameCount_ = 0;
+
+  //succesful
+  camera_ = tempCamera;
+  return true;
+}
+
+bool SeekDriver::restartCameraServiceCB(seek_driver::restartCameraRequest& req, 
+                              seek_driver::restartCameraResponse& resp)
+{
+  sw_retcode mostRecentReturn;//hold return codes to process
+  
+  //if there is a camera, close it out
+  if (camera_)
+  {
+    mostRecentReturn = Seekware_Close(camera_);
+    checkForError(mostRecentReturn, "Closing camera on restart");
+    camera_ = NULL;
+  }
+  
+  resp.success = initCamera();
+  return resp.success;
+}
+
+bool SeekDriver::checkForError(sw_retcode returnError, std::string context)
 {
   if (returnError != SW_RETCODE_NONE) 
   {
@@ -119,6 +180,10 @@ void SeekDriver::processReturnCode(sw_retcode returnError, std::string context)
 
     //TODO: Replace with custom message
     ROS_ERROR("%s", errStringStream.str().c_str());
+
+    return true;
+  } else {
+    return false;
   }
 }
 
@@ -146,12 +211,15 @@ void SeekDriver::initRos()
 
   filteredImagePub_ = it.advertise("seek_camera/filteredImage", 10);
 
+  //setup service servers
+  restartService_ = nh_.advertiseService("seek_camera/restart_seek", &SeekDriver::restartCameraServiceCB, this);
+  
   // set timers
   timer_ = nh_.createTimer(ros::Rate(timerFreq_), &SeekDriver::timerCallback, this);
 }
 
 SeekDriver::~SeekDriver() {
-  if (camera_ != NULL) 
+  if (camera_) 
   {
       Seekware_Close(camera_);
   }
