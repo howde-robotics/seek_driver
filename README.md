@@ -66,7 +66,7 @@ Telemetry information is published using a custom msg defined in msgs, over the 
 ## Services Provided
 This node also provides a ROS service to restart the camera is if was disconnect or experiencing errors. This srv is defined in srvs and available under `seek_driver/restartCamera`
 
-An example use. Launch the ROS node with the seek camerea **NOT** plugged in.
+An example use: Launch the ROS node with the seek camerea **NOT** plugged in.
 ```
 roslaunch seek_driver seek_driver.launch
 ```
