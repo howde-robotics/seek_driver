@@ -24,11 +24,12 @@ catkin_make
 source devel/setup.sh
 roscore
 ```
+Plug in your Seek Camera.
 In a new terminal
 ```
 cd ~/catkin_ws
 source devel/setup.sh
-rosclaunch seek_driver seek_driver.launch
+roslaunch seek_driver seek_driver.launch
 ```
 In a new terminal
 ```
@@ -37,4 +38,10 @@ source devel/setup.sh
 rviz
 ```
 
-Navigate to the 'add' at the bottom left, select 'By Topic'. Under `seek_camera/displayImage` select image.
+Navigate to the 'add' at the bottom left, select 'By Topic'. Under `seek_camera/displayImage` select 'Image'. Select 'Okay'.
+
+the rviz window should looking similar to this:
+
+![ros_seek](https://user-images.githubusercontent.com/38704785/112682748-effb2280-8e46-11eb-964f-3178d762d4d9.png)
+
+
