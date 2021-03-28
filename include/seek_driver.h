@@ -36,7 +36,7 @@
  *
  * On timer loop: Camera images are captured, pumped into messages
  *
- * @see Seek API documentation for explanations of the function
+ * @see Seek SDK documentation for explanations of the function
  * calls
  *
  */
@@ -77,7 +77,7 @@ private:
   std::vector<unsigned short> filteredData_;
 
   //Same as above but with an extra row appended to the bottom
-  //of the data containing camera telemetry data. See Seek API documentation
+  //of the data containing camera telemetry data. See Seek SDK documentation
   std::vector<unsigned short> filteredWithTelemetryData_;
 
   //This is the gain controlled IR camera returns, what you
@@ -88,7 +88,7 @@ private:
 
   /**
    * Display Data returned from Seek is noted as ARGB888
-   * in the Seek API. The encoding for CV_8UC4 (8 bit, 4 channel)
+   * in the Seek SDK. The encoding for CV_8UC4 (8 bit, 4 channel)
    * is BGRA32. While these may seem different, the ARGB888 is
    * little endian notation, thus the channels require no mixing
    * and can be put directly in a cv matrix of type CV_8UC4. Alpha
@@ -133,7 +133,7 @@ private:
    then the camera is closed. Then the camera and data containers
    are re-initilized
    *
-   * @param req Empty request, defined in seek_drive/srv
+   * @param req Empty request, defined in seek_driver/srv
    * @param resp Boolean response of success, defined in seek_driver/src
    * @return true if camera is found and reinitilized without errors
    * @return false otherwise
@@ -143,15 +143,15 @@ private:
 
   /**
    * @brief Used to process the Seek return codes, which are returned
-   * by most calls to the seek API. Checks if an error has occured,
+   * by most calls to the seek SDK. Checks if an error has occured,
    * and will print to ROS_ERROR. If there is nothing abnormal
    * with the return code, then this call is silent
    *
-   * @param returnError Seek API Return Error Code
+   * @param returnError Seek SDK Return Error Code
    * @param context Context that the error occurred in e.g.
    * finding camera, closing camera
    * @return true If returnError != SW_RETCODE_NONE
-   * @return false If there is a returncode error
+   * @return false If there is no return code error
    */
   bool checkForError(sw_retcode returnError, std::string context);
 
@@ -159,10 +159,10 @@ private:
    * @brief Attempts to find a single camera and initialize it
    If an error occurs during this process, the class member
    camera_ remains NULL. Goes through the following initialization
-   sequence, checking for errors after each call to the Seek API:
+   sequence, checking for errors after each call to the Seek SDK:
    1. Attempts to find the camera
    2. Attempts to stop the camera (this helps if it was improperly
-   closed last run)
+   closed last run, will do nothing if camera is already stopped)
    3. Attempts to open the camera
    4. Instantiates the vectors that will capture seek returns
    5. Attempts to enable and restart camera timer
@@ -179,6 +179,8 @@ private:
 
   // ROS and node related variables
   ros::NodeHandle nh_, private_nh_;
+
+  //Timer callback used to run the node
   ros::Timer timer_;
   double timerFreq_;
 
