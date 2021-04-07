@@ -1,5 +1,0 @@
-Header header
-uint32 field_count
-uint16 temp_diode_mv
-float32 env_temp
-uint64 internal_timestamp_micros

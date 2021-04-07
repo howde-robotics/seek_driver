@@ -18,8 +18,8 @@
 #include <cv_bridge/cv_bridge.h>
 
 //my srvs and msgs
-#include "seek_driver/restartCamera.h"
-#include "seek_driver/telemetryData.h"
+#include "dragoon_messages/restartCamera.h"
+#include "dragoon_messages/telemetryData.h"
 
 // Include other header files
 #include <seekware.h>
@@ -138,8 +138,8 @@ private:
    * @return true if camera is found and reinitilized without errors
    * @return false otherwise
    */
-  bool restartCameraServiceCB(seek_driver::restartCameraRequest& req,
-                              seek_driver::restartCameraResponse& resp);
+  bool restartCameraServiceCB(dragoon_messages::restartCameraRequest& req,
+                              dragoon_messages::restartCameraResponse& resp);
 
   /**
    * @brief Used to process the Seek return codes, which are returned

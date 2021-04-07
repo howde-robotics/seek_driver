@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   cv_bridge
   sensor_msgs
-  message_generation
+  dragoon_messages
 )
 
 ## System dependencies are found with CMake's conventions
@@ -50,16 +50,16 @@ find_package( OpenCV REQUIRED )
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  telemetryData.msg
-)
+# add_message_files(
+#   FILES
+#   telemetryData.msg
+# )
 
 ## Generate services in the 'srv' folder
-add_service_files(
-  FILES
-  restartCamera.srv
-)
+# add_service_files(
+#   FILES
+#   restartCamera.srv
+# )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -69,10 +69,10 @@ add_service_files(
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-)
+# generate_messages(
+#   DEPENDENCIES
+#   std_msgs
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -104,12 +104,12 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+ INCLUDE_DIRS include
 #  LIBRARIES seek_driver
 CATKIN_DEPENDS 
   roscpp std_msgs cv_bridge image_transport 
-  sensor_msgs message_runtime
-#  DEPENDS system_lib
+  sensor_msgs dragoon_messages
+ DEPENDS OpenCV
 )
 
 ###########
