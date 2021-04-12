@@ -42,7 +42,7 @@ void SeekDriver::run()
 
     //extract telemetry data
     size_t camera_pixels = camera_->frame_cols * camera_->frame_rows;
-    dragoon_messages::telemetryData telData;
+    seek_driver::telemetryData telData;
     telData.header = head;
     telData.field_count = *reinterpret_cast<unsigned int*>(&filteredWithTelemetryData_[camera_pixels]);
     telData.temp_diode_mv = *reinterpret_cast<unsigned short*>(&filteredWithTelemetryData_[camera_pixels + 2]);
@@ -153,8 +153,8 @@ bool SeekDriver::initCamera()
   return true;
 }
 
-bool SeekDriver::restartCameraServiceCB(dragoon_messages::restartCameraRequest& req,
-                              dragoon_messages::restartCameraResponse& resp)
+bool SeekDriver::restartCameraServiceCB(seek_driver::restartCameraRequest& req,
+                              seek_driver::restartCameraResponse& resp)
 {
   sw_retcode mostRecentReturn;//hold return codes to process
 
@@ -207,7 +207,7 @@ void SeekDriver::initRos()
 
   temperatureImagePub_ = it.advertise("seek_camera/temperatureImageCelcius", 10);
 
-  telemetryPub_ = nh_.advertise<dragoon_messages::telemetryData>("seek_camera/telemetry",10);
+  telemetryPub_ = nh_.advertise<seek_driver::telemetryData>("seek_camera/telemetry",10);
 
   filteredImagePub_ = it.advertise("seek_camera/filteredImage", 10);
 
